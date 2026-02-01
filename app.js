@@ -1,7 +1,17 @@
-const API_URL =
-  "https://metaforge-api.toby-d-parsons.workers.dev/events-schedule";
+// =============================
+// DEFINITIONS
+// =============================
+
+const API_URL = "https://metaforge-api.toby-d-parsons.workers.dev/events-schedule";
+const EVENT_NAME = "Bird City";
+const REFRESH_INTERVAL_MS = 0.05 * 60 * 1000; // First number is quantity of minutes between refresh
 
 let countdownIntervalId = null;
+
+// =============================
+// DATA ACCESS
+// =============================
+
 
 async function getSchedule() {
   const res = await fetch(API_URL);
@@ -9,8 +19,12 @@ async function getSchedule() {
   return res.json();
 }
 
-function transformSchedule(raw) {
-  let filteredItems = raw.filter(item => item.name == "Bird City");
+// =============================
+// HELPERS
+// =============================
+
+function filterAndFormatEvents(raw) {
+  let filteredItems = raw.filter(item => item.name == EVENT_NAME);
 
   var transformedItems = []
   for (let i = 0; i < filteredItems.length; i++) {
@@ -43,51 +57,11 @@ function getEventStatus(event) {
   }
 }
 
-function render(model) {
-  const countdownEl = document.getElementById("next-event-countdown");
-  const statusEl = document.getElementById("next-event-status");
-  if (!countdownEl) return;
-  
-  const nextEvent = model[1];
-  if (!nextEvent) {
-    countdownEl.textContent = "No upcoming events";
-    return;
-  }
+function getRemainingMs(targetMs) {
+  let nowMs = new Date().getTime();
+  let ms = targetMs - nowMs;
 
-  let remainingMs = getRemainingMs(nextEvent.startTime);
-  let timeLeft = msToDhms(remainingMs);
-
-  countdownEl.textContent = JSON.stringify(timeLeft, null, 2);
-  statusEl.textContent = nextEvent.status.toUpperCase();
-  startCountDownForElement(nextEvent.startTime, "next-event-countdown");
-}
-
-async function init() {
-  async function loadAndRender() {
-    const model = await refreshSchedule();
-    render(model);
-  }
-
-  try {
-    await loadAndRender(); // initial load
-
-    // resync every 3 minutes
-    setInterval(() => {
-      loadAndRender().catch(console.error);
-    }, 3 * 60 * 1000);
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById("test").textContent = "Failed to load schedule";
-  }
-}
-
-init();
-
-async function refreshSchedule() {
-  const raw = await getSchedule();
-  const model = transformSchedule(raw.data);
-  return Promise.resolve(model);
+  return ms;
 }
 
 function formatUnixTimestamp(ms) {
@@ -120,9 +94,60 @@ function msToDhms(ms) {
   return { days, hours, minutes, seconds };
 }
 
-function getRemainingMs(targetMs) {
-  let nowMs = new Date().getTime();
-  let ms = targetMs - nowMs;
+// =============================
+// RENDER DOM
+// =============================
 
-  return ms;
+function render(schedule) {
+  const countdownEl = document.getElementById("next-event-countdown");
+  const statusEl = document.getElementById("next-event-status");
+  if (!countdownEl || !statusEl) return;
+  
+  const nextEvent = schedule[0];
+  if (!nextEvent) {
+    countdownEl.textContent = "No upcoming events";
+    return;
+  }
+
+  let remainingMs = getRemainingMs(nextEvent.startTime);
+  let timeLeft = msToDhms(remainingMs);
+
+  countdownEl.textContent = JSON.stringify(timeLeft, null, 2);
+  statusEl.textContent = nextEvent.status.toUpperCase();
+  startCountDownForElement(nextEvent.startTime, "next-event-countdown");
 }
+
+// =============================
+// CONTROLLER HELPERS
+// =============================
+
+async function loadAndRender() {
+    const scheduleView = await refreshSchedule();
+    render(scheduleView);
+}
+
+async function refreshSchedule() {
+  const raw = await getSchedule();
+  return filterAndFormatEvents(raw.data);
+}
+
+// =============================
+// INIT
+// =============================
+
+async function init() {
+  try {
+    await loadAndRender(); // initial load
+
+    // resync every x minutes
+    setInterval(() => {
+      loadAndRender().catch(console.error);
+    }, REFRESH_INTERVAL_MS);
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById("test").textContent = "Failed to load schedule";
+  }
+}
+
+init();
