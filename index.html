@@ -6,9 +6,19 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>HTML 5 Boilerplate</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
+  <body class="bg-neutral-950 text-white">
     <script src="app.js" defer></script>
     <p id="test"></p>
+    <div class="p-4 rounded-xl bg-neutral-900 border border-white/10 shadow-lg">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-semibold">Bird City</span>
+        <span id="next-event-status" class="px-2 py-0.5 text-xs rounded-full bg-blue-600/20 text-blue-400">
+        </span>
+      </div>
+
+      <div id="next-event-countdown" class="mt-4 text-2xl font-bold"></div>
+    </div>
   </body>
 </html>
