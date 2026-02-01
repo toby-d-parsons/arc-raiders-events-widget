@@ -4,9 +4,13 @@
 
 const API_URL = "https://metaforge-api.toby-d-parsons.workers.dev/events-schedule";
 const EVENT_NAME = "Bird City";
-const REFRESH_INTERVAL_MS = 0.05 * 60 * 1000; // First number is quantity of minutes between refresh
-
-let countdownIntervalId = null;
+const REFRESH_INTERVAL_MS = 3 * 60 * 1000; // First number is quantity of minutes between refresh
+const STATUS_CLASSES = {
+  Upcoming: ["bg-blue-600/20", "text-blue-400"],
+  Ongoing: ["bg-green-600/20", "text-green-400"],
+  Finished: ["bg-neutral-600/20", "text-neutral-400"],
+};
+const ALL_STATUS_CLASSES = Object.values(STATUS_CLASSES).flat();
 
 // =============================
 // DATA ACCESS
@@ -68,15 +72,25 @@ function formatUnixTimestamp(ms) {
   return new Date(ms).toLocaleString("en-GB");
 }
 
-function startCountDownForElement(dateTimeTarget, elementId) {
-  if (countdownIntervalId) clearInterval(countdownIntervalId);
+function startCountDownForCard(dateTimeTarget, cardRef) {
+  if (cardRef.intervalId) clearInterval(cardRef.intervalId);
   
-  countdownIntervalId = setInterval(() => {
+  cardRef.intervalId = setInterval(() => {
     let ms = getRemainingMs(dateTimeTarget);
-    let element = document.getElementById(elementId);
 
-    element.textContent = JSON.stringify(msToDhms(ms), null, 2);
+    cardRef.textContent = formatCountdownVerbose(msToDhms(ms), null, 2);
   }, 1000);
+}
+
+function formatCountdownVerbose(timeObject) {
+  let parts = [];
+
+  if (timeObject.days > 0) parts.push(`${timeObject.days} day${timeObject.days !== 1 ? "s" : ""}`);
+  if (timeObject.hours > 0) parts.push(`${timeObject.hours}h`);
+  if (timeObject.minutes > 0) parts.push(`${timeObject.minutes}m`);
+  if (timeObject.seconds > 0 || parts.length === 0) parts.push(`${timeObject.seconds}s`);
+
+  return parts.join(" ");
 }
 
 function msToDhms(ms) {
@@ -94,36 +108,54 @@ function msToDhms(ms) {
   return { days, hours, minutes, seconds };
 }
 
+function generateDomElement(event) {
+  const template = document.getElementById("event-card-template");
+  const card = template.content.firstElementChild.cloneNode(true);
+
+  card.querySelector('[data-role="event-name"]').textContent = event.name;
+  card.querySelector('[data-role="event-status"]').textContent = event.status.toUpperCase();
+  card.querySelector('[data-role="event-countdown"]').textContent = "--";
+  card.querySelector('[data-role="event-start-time"]').textContent = event.startTimeNormalised;
+  card.querySelector('[data-role="event-end-time"]').textContent = event.endTimeNormalised;
+
+  document.body.appendChild(card);
+
+  return {
+    event, // store the event object (or at least start/end times)
+    countdownEl: card.querySelector('[data-role="event-countdown"]'),
+    statusEl: card.querySelector('[data-role="event-status"]'),
+    intervalId: null,
+  };
+}
+
 // =============================
 // RENDER DOM
 // =============================
 
-function render(schedule) {
-  const countdownEl = document.getElementById("next-event-countdown");
-  const statusEl = document.getElementById("next-event-status");
-  if (!countdownEl || !statusEl) return;
-  
-  const nextEvent = schedule[0];
-  if (!nextEvent) {
-    countdownEl.textContent = "No upcoming events";
-    return;
+function render(schedule, cards) {
+  for (let i = 0; i < schedule.length; i++) {
+    let event = schedule[i];
+    let remainingMs = getRemainingMs(event.startTime);
+    let timeLeft = msToDhms(remainingMs);
+    let statusDetails = getEventStatus(event);
+    
+    cards[i].statusEl.classList.remove(...ALL_STATUS_CLASSES);
+    cards[i].statusEl.classList.add(...STATUS_CLASSES[statusDetails]);
+
+    cards[i].countdownEl.textContent = formatCountdownVerbose(timeLeft);
+    cards[i].statusEl.textContent = event.status.toUpperCase();
+    
+    startCountDownForCard(event.startTime, cards[i].countdownEl);
   }
-
-  let remainingMs = getRemainingMs(nextEvent.startTime);
-  let timeLeft = msToDhms(remainingMs);
-
-  countdownEl.textContent = JSON.stringify(timeLeft, null, 2);
-  statusEl.textContent = nextEvent.status.toUpperCase();
-  startCountDownForElement(nextEvent.startTime, "next-event-countdown");
 }
 
 // =============================
 // CONTROLLER HELPERS
 // =============================
 
-async function loadAndRender() {
+async function loadAndRender(cards) {
     const scheduleView = await refreshSchedule();
-    render(scheduleView);
+    render(scheduleView, cards);
 }
 
 async function refreshSchedule() {
@@ -136,12 +168,22 @@ async function refreshSchedule() {
 // =============================
 
 async function init() {
+  const cards = [];
+
+  let schedule = await refreshSchedule();
+  for (let i = 0; i < schedule.length; i++) {
+    let cardRef = generateDomElement(schedule[i]);
+    cards.push(cardRef);
+  }
+
+  //cards[0].statusEl.textContent = "TESTSTSSTST";
+
   try {
-    await loadAndRender(); // initial load
+    await loadAndRender(cards); // initial load
 
     // resync every x minutes
     setInterval(() => {
-      loadAndRender().catch(console.error);
+      loadAndRender(cards).catch(console.error);
     }, REFRESH_INTERVAL_MS);
 
   } catch (err) {

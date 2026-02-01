@@ -4,21 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Bird City Event Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-neutral-950 text-white">
     <script src="app.js" defer></script>
     <p id="test"></p>
-    <div class="p-4 rounded-xl bg-neutral-900 border border-white/10 shadow-lg">
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-semibold">Bird City</span>
-        <span id="next-event-status" class="px-2 py-0.5 text-xs rounded-full bg-blue-600/20 text-blue-400">
-        </span>
-      </div>
+    <template id="event-card-template">
+      <div class="p-4 rounded-xl bg-neutral-900 border border-white/10 shadow-lg space-y-3" data-role="event-card">
 
-      <div id="next-event-countdown" class="mt-4 text-2xl font-bold"></div>
-    </div>
+        <!-- Header: name + status -->
+        <div class="flex items-center gap-2">
+          <span data-role="event-name" class="text-sm font-semibold">Bird City</span>
+
+          <span
+            data-role="event-status"
+            class="px-2 py-0.5 text-xs rounded-full bg-blue-600/20 text-blue-400"
+          >
+            UPCOMING
+          </span>
+        </div>
+
+        <!-- Time until (primary emphasis) -->
+        <div>
+          <div data-role="countdown-label" class="text-xs text-neutral-400">
+            Time until start
+          </div>
+
+          <div data-role="event-countdown" class="mt-1 text-2xl font-bold tracking-tight">
+            00:00:00
+          </div>
+        </div>
+
+        <!-- Meta: start / end times -->
+        <div class="grid grid-cols-2 gap-3 text-xs text-neutral-400">
+          <div>
+            <div class="uppercase tracking-wide">Starts</div>
+            <div data-role="event-start-time" class="text-neutral-200 font-medium">—</div>
+          </div>
+
+          <div>
+            <div class="uppercase tracking-wide">Ends</div>
+            <div data-role="event-end-time" class="text-neutral-200 font-medium">—</div>
+          </div>
+        </div>
+      </div>
+    </template>
   </body>
 </html>
