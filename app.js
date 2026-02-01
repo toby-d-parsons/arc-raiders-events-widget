@@ -114,6 +114,7 @@ function generateDomElement(event) {
 
   card.querySelector('[data-role="event-name"]').textContent = event.name;
   card.querySelector('[data-role="event-status"]').textContent = event.status.toUpperCase();
+  card.querySelector('[data-role="countdown-label"]').textContent = "--";
   card.querySelector('[data-role="event-countdown"]').textContent = "--";
   card.querySelector('[data-role="event-start-time"]').textContent = event.startTimeNormalised;
   card.querySelector('[data-role="event-end-time"]').textContent = event.endTimeNormalised;
@@ -123,9 +124,18 @@ function generateDomElement(event) {
   return {
     event, // store the event object (or at least start/end times)
     countdownEl: card.querySelector('[data-role="event-countdown"]'),
+    countdownLabel: card.querySelector('[data-role="countdown-label"]'),
     statusEl: card.querySelector('[data-role="event-status"]'),
     intervalId: null,
   };
+}
+
+function setCountdownLabel(card, statusDetails) {
+  if (statusDetails = "Upcoming") {
+    card.countdownLabel.textContent = "Time until start";
+  } else {
+    card.countdownLabel.textContent = "Time until end";
+  }
 }
 
 // =============================
@@ -144,8 +154,18 @@ function render(schedule, cards) {
 
     cards[i].countdownEl.textContent = formatCountdownVerbose(timeLeft);
     cards[i].statusEl.textContent = event.status.toUpperCase();
-    
-    startCountDownForCard(event.startTime, cards[i].countdownEl);
+
+    setCountdownLabel(cards[i], statusDetails);
+
+    let targetTime;
+
+    if (event.startTime > new Date().getTime()) {
+      targetTime = event.startTime;
+    } else {
+      targetTime = event.endTime;
+    }
+
+    startCountDownForCard(targetTime, cards[i].countdownEl);
   }
 }
 
@@ -175,8 +195,6 @@ async function init() {
     let cardRef = generateDomElement(schedule[i]);
     cards.push(cardRef);
   }
-
-  //cards[0].statusEl.textContent = "TESTSTSSTST";
 
   try {
     await loadAndRender(cards); // initial load
