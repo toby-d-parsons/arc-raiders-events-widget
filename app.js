@@ -126,6 +126,8 @@ function generateDomElement(event) {
     countdownEl: card.querySelector('[data-role="event-countdown"]'),
     countdownLabel: card.querySelector('[data-role="countdown-label"]'),
     statusEl: card.querySelector('[data-role="event-status"]'),
+    startTimeNormalisedEl: card.querySelector('[data-role="event-start-time"]'),
+    endTimeNormalisedEl: card.querySelector('[data-role="event-end-time"]'),
     intervalId: null,
   };
 }
@@ -154,6 +156,8 @@ function render(schedule, cards) {
 
     cards[i].countdownEl.textContent = formatCountdownVerbose(timeLeft);
     cards[i].statusEl.textContent = event.status.toUpperCase();
+    cards[i].startTimeNormalisedEl.textContent = event.startTimeNormalised;
+    cards[i].endTimeNormalisedEl.textContent = event.endTimeNormalised;
 
     setCountdownLabel(cards[i], statusDetails);
 
