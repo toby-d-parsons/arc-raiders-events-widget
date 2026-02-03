@@ -50,5 +50,46 @@
         </div>
       </div>
     </template>
+    <template id="no-events-card-template">
+      <div
+        class="p-4 rounded-xl bg-neutral-900 border border-white/10 shadow-lg space-y-3 opacity-80"
+        data-role="no-event-card"
+      >
+        <!-- Header -->
+        <div class="flex items-center gap-2">
+          <span data-role="no-event-name" class="text-sm font-semibold text-neutral-200">Bird City</span>
+
+          <span
+            class="px-2 py-0.5 text-xs rounded-full bg-neutral-700/40 text-neutral-400"
+          >
+            NO EVENTS
+          </span>
+        </div>
+
+        <!-- Primary message -->
+        <div>
+          <div class="text-xs text-neutral-400">
+            No scheduled events
+          </div>
+
+          <div class="mt-1 text-xl font-semibold tracking-tight text-neutral-300">
+            Check back later
+          </div>
+        </div>
+
+        <!-- Meta placeholders (keeps layout stable) -->
+        <div class="grid grid-cols-2 gap-3 text-xs text-neutral-500">
+          <div>
+            <div class="uppercase tracking-wide">Starts</div>
+            <div class="font-medium">—</div>
+          </div>
+
+          <div>
+            <div class="uppercase tracking-wide">Ends</div>
+            <div class="font-medium">—</div>
+          </div>
+        </div>
+      </div>
+    </template>
   </body>
 </html>

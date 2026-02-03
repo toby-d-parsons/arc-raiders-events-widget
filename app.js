@@ -169,6 +169,15 @@ function render(schedule, cards) {
   }
 }
 
+function renderNoEventsAvailable() {
+  const template = document.getElementById("no-events-card-template");
+  const card = template.content.firstElementChild.cloneNode(true);
+
+  card.querySelector('[data-role="no-event-name"]').textContent = EVENT_NAME;
+
+  document.body.appendChild(card);
+}
+
 // =============================
 // CONTROLLER HELPERS
 // =============================
@@ -194,6 +203,10 @@ async function init() {
   for (let i = 0; i < schedule.length; i++) {
     let cardRef = generateDomElement(schedule[i]);
     cards.push(cardRef);
+  }
+
+  if (schedule.length == 0) {
+    renderNoEventsAvailable();
   }
 
   try {
