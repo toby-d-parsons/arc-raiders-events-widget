@@ -131,7 +131,7 @@ function generateDomElement(event) {
 }
 
 function setCountdownLabel(card, statusDetails) {
-  if (statusDetails = "Upcoming") {
+  if (statusDetails == "Upcoming") {
     card.countdownLabel.textContent = "Time until start";
   } else {
     card.countdownLabel.textContent = "Time until end";
