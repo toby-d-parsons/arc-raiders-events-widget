@@ -16,6 +16,7 @@ Primarily designed to be embedded via **iframe** (e.g. overlays, dashboards, or 
   - **Before start** → counts down to `startTime`
   - **After start** → counts down to `endTime`
 - Refreshes schedule data periodically (default: every 3 minutes)
+- If no events are scheduled, displays default message to check back later
 
 ---
 
